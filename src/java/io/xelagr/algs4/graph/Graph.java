@@ -13,14 +13,19 @@ public class Graph {
     @SuppressWarnings("unchecked")
     public Graph(int V) {
         this.V = V;
-        adj = new ArrayList[V];
+        this.adj = new ArrayList[V];
         for (int i = 0; i < V; i++) {
             adj[i] = new ArrayList<>();
         }
     }
 
+    @SuppressWarnings("unchecked")
     public Graph(In in) {
         this.V = in.readInt();
+        this.adj = new ArrayList[V];
+        for (int i = 0; i < V; i++) {
+            adj[i] = new ArrayList<>();
+        }
         int edgeCount = in.readInt();
         for (int i = 0; i < edgeCount; i++) {
             addEdge(in.readInt(), in.readInt());
