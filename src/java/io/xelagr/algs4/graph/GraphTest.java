@@ -10,4 +10,6 @@ public class GraphTest {
         System.out.println("g.E(): " + g.E());
         System.out.println(g);
     }
+
+
 }
