@@ -1,4 +1,4 @@
-package io.xelagr.algs4.graph;
+package io.xelagr.algs4.graph.undirected;
 
 import edu.princeton.cs.algs4.In;
 

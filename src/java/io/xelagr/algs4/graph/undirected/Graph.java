@@ -1,4 +1,4 @@
-package io.xelagr.algs4.graph;
+package io.xelagr.algs4.graph.undirected;
 
 import edu.princeton.cs.algs4.In;
 
@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Graph {
-    private final int V;
-    private int E;
-    private List<Integer>[] adj;
+    protected final int V;
+    protected int E;
+    protected List<Integer>[] adj;
 
     @SuppressWarnings("unchecked")
     public Graph(int V) {
@@ -42,11 +42,11 @@ public class Graph {
         return adj[v];
     }
 
-    int V() {
+    public int V() {
         return V;
     }
 
-    int E() {
+    public int E() {
         return E;
     }
 
