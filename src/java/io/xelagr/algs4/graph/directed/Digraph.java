@@ -1,4 +1,4 @@
-package directed;
+package io.xelagr.algs4.graph.directed;
 
 import edu.princeton.cs.algs4.In;
 import io.xelagr.algs4.graph.undirected.Graph;

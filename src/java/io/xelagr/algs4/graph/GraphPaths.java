@@ -1,4 +1,6 @@
-package io.xelagr.algs4.graph.undirected;
+package io.xelagr.algs4.graph;
+
+import io.xelagr.algs4.graph.undirected.Graph;
 
 import java.util.LinkedList;
 
@@ -25,5 +27,9 @@ public abstract class GraphPaths {
         }
         path.push(s);
         return path;
+    }
+
+    public Integer edgeTo(int v) {
+        return edgeTo[v];
     }
 }

@@ -1,6 +1,7 @@
-package io.xelagr.algs4.graph.undirected;
+package io.xelagr.algs4.graph;
 
 import edu.princeton.cs.algs4.In;
+import io.xelagr.algs4.graph.undirected.Graph;
 
 import java.net.URL;
 

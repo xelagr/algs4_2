@@ -1,4 +1,6 @@
-package io.xelagr.algs4.graph.undirected;
+package io.xelagr.algs4.graph;
+
+import io.xelagr.algs4.graph.undirected.Graph;
 
 public class ConnectedComponents {
     private int[] id;
