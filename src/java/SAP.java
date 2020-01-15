@@ -3,8 +3,6 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;
 
-import static WordNetUtils.requireNonNull;
-
 public class SAP {
     private Digraph G;
 
@@ -60,6 +58,12 @@ public class SAP {
             int length   = sap.length(v, w);
             int ancestor = sap.ancestor(v, w);
             StdOut.printf("length = %d, ancestor = %d\n", length, ancestor);
+        }
+    }
+
+    private void requireNonNull(String name, Object o) {
+        if (o == null) {
+            throw new IllegalArgumentException(name + " cannot be null");
         }
     }
 
