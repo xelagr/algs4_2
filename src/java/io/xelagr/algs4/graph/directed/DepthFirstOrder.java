@@ -3,8 +3,8 @@ package io.xelagr.algs4.graph.directed;
 import java.util.LinkedList;
 
 public class DepthFirstOrder {
-    boolean[] marked;
-    private LinkedList<Integer> reversePost;
+    protected boolean[] marked;
+    protected LinkedList<Integer> reversePost;
 
     public DepthFirstOrder(Digraph g) {
         marked = new boolean[g.V()];
@@ -14,7 +14,7 @@ public class DepthFirstOrder {
         }
     }
 
-    private void dfs(Digraph g, int v) {
+    protected void dfs(Digraph g, int v) {
         marked[v] = true;
         for (int w : g.adj(v)) {
             if (!marked[w]) dfs(g, w);

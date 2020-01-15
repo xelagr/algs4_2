@@ -19,7 +19,13 @@ public class Digraph extends Graph {
     }
 
     public Digraph reverse() {
-        throw new UnsupportedOperationException("no implemented yet");
+        Digraph g = new Digraph(V);
+        for (int v = 0; v < V; v++) {
+            for(int w : adj[v]) {
+                g.addEdge(w, v);
+            }
+        }
+        return g;
     }
 
 }

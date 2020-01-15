@@ -1,9 +1,12 @@
 package io.xelagr.algs4.graph;
 
 import io.xelagr.algs4.graph.undirected.Graph;
+import org.junit.Test;
 
-public class BreadthFirstPathsTest {
-    public static void main(String[] args) {
+public class DepthFirstPathsTest {
+
+    @Test
+    public void test() {
         Graph g = new Graph(9);
         g.addEdge(0, 3);
         g.addEdge(0, 4);
@@ -17,10 +20,10 @@ public class BreadthFirstPathsTest {
         g.addEdge(2, 5);
 
         int s = 0;
-        GraphPaths paths = new BreadthFirstPaths(g, s);
+        GraphPaths paths = new DepthFirstPaths(g, s);
         for (int v = 0; v < g.V(); v++) {
 //            if (pathsSlow.hasPathTo(v)) {
-            System.out.printf("Path from %d to %d: %s\r\n", s, v, paths.pathTo(v));
+                System.out.printf("Path from %d to %d: %s\r\n", s, v, paths.pathTo(v));
 //            }
         }
     }

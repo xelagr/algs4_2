@@ -1,7 +1,11 @@
 package io.xelagr.algs4.graph.undirected;
 
+import org.junit.Test;
+
 public class GraphTest {
-    public static void main(String[] args) {
+
+    @Test
+    public void test() {
         Graph g = new Graph(10);
         g.addEdge(0, 1);
         g.addEdge(5, 7);

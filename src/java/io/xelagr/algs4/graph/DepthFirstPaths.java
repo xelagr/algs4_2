@@ -12,7 +12,7 @@ public class DepthFirstPaths extends GraphPaths {
     public DepthFirstPaths(Graph g, int s) {
         super(g, s);
         cycles = new ArrayList<>();
-        DFS2(g, s);
+        iterativeDFS(g, s);
     }
 
     private void DFS(Graph g, int v) {
@@ -25,7 +25,7 @@ public class DepthFirstPaths extends GraphPaths {
         }
     }
 
-    private void DFS2(Graph g, int v) {
+    private void iterativeDFS(Graph g, int v) {
         marked[v] = true;
         LinkedList<Integer> stack = new LinkedList<>();
         stack.push(v);

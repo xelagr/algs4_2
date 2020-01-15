@@ -1,7 +1,11 @@
 package io.xelagr.algs4.graph.directed;
 
+import org.junit.Test;
+
 public class DepthFirstOrderTest {
-    public static void main(String[] args) {
+
+    @Test
+    public void test() {
         Digraph g = new Digraph(7);
         g.addEdge(0, 5);
         g.addEdge(0, 1);
