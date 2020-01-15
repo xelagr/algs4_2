@@ -2,23 +2,22 @@ package io.xelagr.algs4.graph.directed;
 
 import io.xelagr.algs4.graph.undirected.Graph;
 
-public class StrongComponents extends DepthFirstOrder {
+public class KosarajuSharirSCC extends DepthFirstOrder {
 
     private int[] scc;
-    int group = 0;
+    private int group = 0;
 
-    public StrongComponents(Digraph g) {
+    public KosarajuSharirSCC(Digraph g) {
         super(g.reverse());
 
         scc = new int[g.V()];
         marked = new boolean[g.V()];
-        System.out.print("Reverse postorder: ");
         for(int v : reversePost()) {
-            System.out.print(v + " ");
-            dfs2(g, v);
-            group++;
+            if(!marked[v]) {
+                dfs2(g, v);
+                group++;
+            }
         }
-        System.out.println();
     }
 
     private void dfs2(Graph g, int v) {
