@@ -7,7 +7,7 @@ public class DigraphTest {
 
     @Test
     public void test() {
-        In in = new In("/algs4-data/tinyDG.txt");
+        In in = new In("/tinyDG.txt");
         Digraph g = new Digraph(in);
 
         for (int v = 0; v < g.V(); v++) {
@@ -19,7 +19,7 @@ public class DigraphTest {
 
     @Test
     public void testReverse() {
-        In in = new In("/algs4-data/tinyDG.txt");
+        In in = new In("/tinyDG.txt");
         Digraph g = new Digraph(in);
 
         System.out.println("Original graph");

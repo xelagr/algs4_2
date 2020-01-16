@@ -9,7 +9,7 @@ public class KosarajuSharirSCCTest {
 
     @Test
     public void test() {
-        final URL graphURL = KosarajuSharirSCCTest.class.getResource("/algs4-data/tinyDG.txt");
+        final URL graphURL = KosarajuSharirSCCTest.class.getResource("/tinyDG.txt");
         final Digraph g = new Digraph(new In(graphURL));
 
         final KosarajuSharirSCC sc = new KosarajuSharirSCC(g);

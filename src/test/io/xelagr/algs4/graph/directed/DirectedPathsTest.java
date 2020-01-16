@@ -3,7 +3,6 @@ package io.xelagr.algs4.graph.directed;
 import edu.princeton.cs.algs4.In;
 import io.xelagr.algs4.graph.BreadthFirstPaths;
 import io.xelagr.algs4.graph.DepthFirstPaths;
-import io.xelagr.algs4.graph.GraphPaths;
 import io.xelagr.algs4.graph.undirected.Graph;
 import org.junit.Test;
 
@@ -11,7 +10,7 @@ public class DirectedPathsTest {
 
     @Test
     public void bfsTest() {
-        final In in = new In("/algs4-data/tinyDG2.txt");
+        final In in = new In("/tinyDG2.txt");
         Graph g = new Digraph(in);
 
         int s = 0;
@@ -25,7 +24,7 @@ public class DirectedPathsTest {
 
     @Test
     public void dfsTest() {
-        final In in = new In("/algs4-data/tinyDG2.txt");
+        final In in = new In("/tinyDG2.txt");
         Graph g = new Digraph(in);
 
         int s = 0;
