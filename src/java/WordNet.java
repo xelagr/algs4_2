@@ -2,70 +2,71 @@ import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Topological;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 public class WordNet {
 
-    private final Digraph G;
-    private HashSet<String> words;
-    private HashMap<String, Integer> wordVertexMap;
+    private final Map<String, List<Integer>> wordSynsetIdsMap;
+    private final String[] synsets;
+    private final SAP sap;
 
     // constructor takes the name of the two input files
-    public WordNet(String synsets, String hypernyms) {
-        requireNonNull("synsets", synsets);
-        requireNonNull("hypernyms", hypernyms);
+    public WordNet(String synsetsFileName, String hypernymsFileName) {
+        requireNonNull("synsetsFileName", synsetsFileName);
+        requireNonNull("hypernymsFileName", hypernymsFileName);
 
-        final String[] synsetLines = new In(synsets).readAllLines();
-        G = new Digraph(synsetLines.length);
+        final String[] synsetLines = new In(synsetsFileName).readAllLines();
+        Digraph g = new Digraph(synsetLines.length);
 
-        if (!isRootedDAG(G)) {
+        if (!isRootedDAG(g)) {
             throw new IllegalArgumentException("The input does not correspond to a rooted DAG");
         }
 
-        words = new HashSet<>(G.V());
-        wordVertexMap = new HashMap<>(G.V());
+        wordSynsetIdsMap = new HashMap<>(g.V());
+        synsets = new String[g.V()];
 
-        int percent = G.V() / 100;
         for (String sLine : synsetLines) {
             final String[] sTokens = sLine.split(",");
             int id = Integer.parseInt(sTokens[0]);
-            if (id % percent == 0) {
-                System.out.printf("Loaded %d%% of synsets\r\n", id / percent);
+
+            final String synset = sTokens[1];
+            synsets[id] = synset;
+
+            final String[] sWords = synset.split(" ");
+            for (String word : sWords) {
+                if (!wordSynsetIdsMap.containsKey(word)) {
+                    wordSynsetIdsMap.put(word, new ArrayList<>());
+                }
+                wordSynsetIdsMap.get(word).add(id);
             }
-            final String[] sWords = sTokens[1].split(" ");
-            words.addAll(Arrays.asList(sWords));
-            words.forEach(word -> wordVertexMap.put(word, id));
         }
 
-        final In hypernymIn = new In(hypernyms);
-        int counter = 0;
-        System.out.println();
+        final In hypernymIn = new In(hypernymsFileName);
         while(hypernymIn.hasNextLine()) {
-            counter++;
-            if (counter % 1000 == 0) {
-                System.out.printf("Loaded %d lines of hypernyms\r\n", counter);
-            }
             String hLine = hypernymIn.readLine();
             final String[] hTokens = hLine.split(",");
             int v = Integer.parseInt(hTokens[0]);
             for (int i = 1; i < hTokens.length; i++) {
                 int w = Integer.parseInt(hTokens[i]);
-                G.addEdge(v, w);
+                g.addEdge(v, w);
             }
         }
+
+        sap = new SAP(g);
     }
 
     // returns all WordNet nouns
     public Iterable<String> nouns() {
-        return words;
+        return wordSynsetIdsMap.keySet();
     }
 
     // is the word a WordNet noun?
     public boolean isNoun(String word) {
         requireNonNull("word", word);
-        return words.contains(word);
+        return wordSynsetIdsMap.containsKey(word);
     }
 
     // distance between nounA and nounB (defined below)
@@ -75,7 +76,7 @@ public class WordNet {
         requireWordNetNoun(nounA);
         requireWordNetNoun(nounB);
 
-        throw new UnsupportedOperationException("not implemented yet");
+        return sap.length(wordSynsetIdsMap.get(nounA), wordSynsetIdsMap.get(nounB));
     }
 
     // a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB
@@ -86,12 +87,44 @@ public class WordNet {
         requireWordNetNoun(nounA);
         requireWordNetNoun(nounB);
 
-        throw new UnsupportedOperationException("not implemented yet");
+
+        final int ancestor = sap.ancestor(wordSynsetIdsMap.get(nounA), wordSynsetIdsMap.get(nounB));
+        return synsets[ancestor];
     }
 
     // do unit testing of this class
     public static void main(String[] args) {
         WordNet wordNet = new WordNet("synsets.txt", "hypernyms.txt");
+        System.out.println("First WordNet noun: " + wordNet.nouns().iterator().next());
+        System.out.println();
+
+        printIfWordNetNoun(wordNet, "George_W._Bush");
+        printIfWordNetNoun(wordNet, "chimpanzee");
+        printIfWordNetNoun(wordNet, "President_John_F._Kennedy");
+        printIfWordNetNoun(wordNet, "Eric_Arthur_Blair");
+        printIfWordNetNoun(wordNet, "bla");
+        System.out.println();
+
+//        TODO check the logic - should be primate instead of physical_entity?
+        printAncestorAndDistance(wordNet, "George_W._Bush", "chimpanzee");
+//        printAncestorAndDistance(wordNet, "George_W._Bush", "physical_entity");
+//        printAncestorAndDistance(wordNet, "chimpanzee", "physical_entity");
+//        printAncestorAndDistance(wordNet, "George_W._Bush", "primate");
+//        printAncestorAndDistance(wordNet, "chimpanzee", "primate");
+
+        printAncestorAndDistance(wordNet, "George_W._Bush", "President_John_F._Kennedy");
+        printAncestorAndDistance(wordNet, "George_W._Bush", "Eric_Arthur_Blair");
+        printAncestorAndDistance(wordNet, "man", "chimpanzee");
+    }
+
+    private static void printIfWordNetNoun(WordNet wordNet, String noun) {
+        System.out.printf("Is '%s' a WordNet noun? : %b\r\n", noun, wordNet.isNoun(noun));
+    }
+
+    private static void printAncestorAndDistance(WordNet wordNet, String nounA, String nounB) {
+        System.out.printf("Length of shortest ancestral path between '%s' and '%s' is %d \r\n", nounA, nounB, wordNet.distance(nounA, nounB));
+        System.out.printf("A shortest common ancestor of '%s' and '%s' is '%s' \r\n", nounA, nounB, wordNet.sap(nounA, nounB));
+        System.out.println();
     }
 
     private void requireNonNull(String name, Object o) {

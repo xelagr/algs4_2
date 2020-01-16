@@ -2,15 +2,28 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
 public class Outcast {
+    private WordNet wordnet;
 
     // constructor takes a WordNet object
     public Outcast(WordNet wordnet) {
-
+        this.wordnet = wordnet;
     }
 
     // given an array of WordNet nouns, return an outcast
     public String outcast(String[] nouns) {
-        throw new UnsupportedOperationException("not implemented yet");
+        String outcast = null;
+        int maxDistance = -1;
+        for (String noun1 : nouns) {
+            int d = 0;
+            for (String noun2 : nouns) {
+                d += wordnet.distance(noun1, noun2);
+            }
+            if (d > maxDistance) {
+                outcast = noun1;
+                maxDistance = d;
+            }
+        }
+        return outcast;
     }
 
     public static void main(String[] args) {
