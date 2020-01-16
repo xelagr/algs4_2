@@ -1,16 +1,22 @@
-import edu.princeton.cs.algs4.Digraph;
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.StdIn;
-import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.*;
+
+import java.util.Iterator;
 
 public class SAP {
-    private Digraph G;
+
+    private final Digraph G;
+    private final Digraph RG;
+    private final BreadthFirstDirectedPaths rootPaths;
 
     // constructor takes a digraph (not necessarily a DAG)
     public SAP(Digraph G) {
         requireNonNull("G", G);
-
         this.G = G;
+
+        DepthFirstOrder order = new DepthFirstOrder(G);
+        Integer root = order.post().iterator().next();
+        RG = G.reverse();
+        this.rootPaths = new BreadthFirstDirectedPaths(RG, root);
     }
 
     // length of shortest ancestral path between v and w; -1 if no such path
@@ -18,7 +24,10 @@ public class SAP {
         validateVertex(v);
         validateVertex(w);
 
-        throw new UnsupportedOperationException("not implemented yet");
+        int ancestor = ancestor(v, w);
+        BreadthFirstDirectedPaths ancestorPaths = new BreadthFirstDirectedPaths(RG, ancestor);
+        int l = ancestorPaths.distTo(v) + ancestorPaths.distTo(w);
+        return l;
     }
 
     // a common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
@@ -26,23 +35,36 @@ public class SAP {
         validateVertex(v);
         validateVertex(w);
 
-        throw new UnsupportedOperationException("not implemented yet");
+        Iterator<Integer> vp = rootPaths.pathTo(v).iterator();
+        Iterator<Integer> wp = rootPaths.pathTo(w).iterator();
+        System.out.println(rootPaths.pathTo(v));
+        System.out.println(rootPaths.pathTo(w));
+        int ancestor = -1;
+        while(vp.hasNext() && wp.hasNext()) {
+            v = vp.next();
+            w = wp.next();
+            if (v == w) {
+                ancestor = v;
+            }
+            else {
+                break;
+            }
+        }
+        return ancestor;
     }
 
     // length of shortest ancestral path between any vertex in v and any vertex in w; -1 if no such path
     public int length(Iterable<Integer> v, Iterable<Integer> w) {
-        requireNonNull("v", v);
-        requireNonNull("w", w);
-        //TODO Throw an IllegalArgumentException if any iterable argument contains a null item
+        requireNonNullIterable("v", v);
+        requireNonNullIterable("w", w);
 
         throw new UnsupportedOperationException("not implemented yet");
     }
 
     // a common ancestor that participates in shortest ancestral path; -1 if no such path
     public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
-        requireNonNull("v", v);
-        requireNonNull("w", w);
-        //TODO Throw an IllegalArgumentException if any iterable argument contains a null item
+        requireNonNullIterable("v", v);
+        requireNonNullIterable("w", w);
 
         throw new UnsupportedOperationException("not implemented yet");
     }
@@ -64,6 +86,15 @@ public class SAP {
     private void requireNonNull(String name, Object o) {
         if (o == null) {
             throw new IllegalArgumentException(name + " cannot be null");
+        }
+    }
+
+    private <T> void requireNonNullIterable(String name, Iterable<T> iterable) {
+        requireNonNull(name, iterable);
+        for (T t : iterable) {
+            if (t == null) {
+                throw new IllegalArgumentException("An item in iterable argument " + name + " cannot be null");
+            }
         }
     }
 

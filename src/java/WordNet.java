@@ -20,25 +20,33 @@ public class WordNet {
         final String[] synsetLines = new In(synsets).readAllLines();
         G = new Digraph(synsetLines.length);
 
-        final Topological topological = new Topological(G);
-        //TODO check if it is a rooted DAG.
-        if (!topological.hasOrder()) {
+        if (!isRootedDAG(G)) {
             throw new IllegalArgumentException("The input does not correspond to a rooted DAG");
         }
 
-        words = new HashSet<>();
-        wordVertexMap = new HashMap<>();
+        words = new HashSet<>(G.V());
+        wordVertexMap = new HashMap<>(G.V());
 
+        int percent = G.V() / 100;
         for (String sLine : synsetLines) {
             final String[] sTokens = sLine.split(",");
             int id = Integer.parseInt(sTokens[0]);
+            if (id % percent == 0) {
+                System.out.printf("Loaded %d%% of synsets\r\n", id / percent);
+            }
             final String[] sWords = sTokens[1].split(" ");
             words.addAll(Arrays.asList(sWords));
             words.forEach(word -> wordVertexMap.put(word, id));
         }
 
         final In hypernymIn = new In(hypernyms);
+        int counter = 0;
+        System.out.println();
         while(hypernymIn.hasNextLine()) {
+            counter++;
+            if (counter % 1000 == 0) {
+                System.out.printf("Loaded %d lines of hypernyms\r\n", counter);
+            }
             String hLine = hypernymIn.readLine();
             final String[] hTokens = hLine.split(",");
             int v = Integer.parseInt(hTokens[0]);
@@ -83,7 +91,7 @@ public class WordNet {
 
     // do unit testing of this class
     public static void main(String[] args) {
-
+        WordNet wordNet = new WordNet("synsets.txt", "hypernyms.txt");
     }
 
     private void requireNonNull(String name, Object o) {
@@ -96,5 +104,16 @@ public class WordNet {
         if (!isNoun(noun)) {
             throw new IllegalArgumentException(noun + " is not a WordNet noun");
         }
+    }
+
+    private boolean isRootedDAG(Digraph G) {
+        boolean result = false;
+        final Topological topological = new Topological(G);
+        if (topological.hasOrder()) {
+            //TODO use DFS to find roots for all unmarked vertices in topological order
+            //TODO and verify that roots are the same
+            result = true;
+        }
+        return result;
     }
 }
