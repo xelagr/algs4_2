@@ -9,8 +9,8 @@ import java.util.Map;
 
 public class WordNet {
 
-    private final Map<String, List<Integer>> wordSynsetIdsMap;
-    private final String[] synsets;
+    private Map<String, List<Integer>> wordSynsetIdsMap;
+    private String[] synsets;
     private final SAP sap;
 
     // constructor takes the name of the two input files
@@ -18,12 +18,19 @@ public class WordNet {
         requireNonNull("synsetsFileName", synsetsFileName);
         requireNonNull("hypernymsFileName", hypernymsFileName);
 
-        final String[] synsetLines = new In(synsetsFileName).readAllLines();
-        Digraph g = new Digraph(synsetLines.length);
+        Digraph g = readSynsets(synsetsFileName);
+        readHypernyms(hypernymsFileName, g);
 
         if (!isRootedDAG(g)) {
             throw new IllegalArgumentException("The input does not correspond to a rooted DAG");
         }
+
+        sap = new SAP(g);
+    }
+
+    private Digraph readSynsets(String synsetsFileName) {
+        final String[] synsetLines = new In(synsetsFileName).readAllLines();
+        Digraph g = new Digraph(synsetLines.length);
 
         wordSynsetIdsMap = new HashMap<>(g.V());
         synsets = new String[g.V()];
@@ -43,9 +50,12 @@ public class WordNet {
                 wordSynsetIdsMap.get(word).add(id);
             }
         }
+        return g;
+    }
 
+    private void readHypernyms(String hypernymsFileName, Digraph g) {
         final In hypernymIn = new In(hypernymsFileName);
-        while(hypernymIn.hasNextLine()) {
+        while (hypernymIn.hasNextLine()) {
             String hLine = hypernymIn.readLine();
             final String[] hTokens = hLine.split(",");
             int v = Integer.parseInt(hTokens[0]);
@@ -54,8 +64,6 @@ public class WordNet {
                 g.addEdge(v, w);
             }
         }
-
-        sap = new SAP(g);
     }
 
     // returns all WordNet nouns
@@ -87,14 +95,13 @@ public class WordNet {
         requireWordNetNoun(nounA);
         requireWordNetNoun(nounB);
 
-
         final int ancestor = sap.ancestor(wordSynsetIdsMap.get(nounA), wordSynsetIdsMap.get(nounB));
         return synsets[ancestor];
     }
 
     // do unit testing of this class
     public static void main(String[] args) {
-        WordNet wordNet = new WordNet("synsets.txt", "hypernyms.txt");
+        WordNet wordNet = new WordNet("/wordnet/synsets.txt", "/wordnet/hypernyms.txt");
         System.out.println("First WordNet noun: " + wordNet.nouns().iterator().next());
         System.out.println();
 
@@ -107,11 +114,6 @@ public class WordNet {
 
 //        TODO check the logic - should be primate instead of physical_entity?
         printAncestorAndDistance(wordNet, "George_W._Bush", "chimpanzee");
-//        printAncestorAndDistance(wordNet, "George_W._Bush", "physical_entity");
-//        printAncestorAndDistance(wordNet, "chimpanzee", "physical_entity");
-//        printAncestorAndDistance(wordNet, "George_W._Bush", "primate");
-//        printAncestorAndDistance(wordNet, "chimpanzee", "primate");
-
         printAncestorAndDistance(wordNet, "George_W._Bush", "President_John_F._Kennedy");
         printAncestorAndDistance(wordNet, "George_W._Bush", "Eric_Arthur_Blair");
         printAncestorAndDistance(wordNet, "man", "chimpanzee");
@@ -127,8 +129,8 @@ public class WordNet {
         System.out.println();
     }
 
-    private void requireNonNull(String name, Object o) {
-        if (o == null) {
+    private void requireNonNull(String name, Object obj) {
+        if (obj == null) {
             throw new IllegalArgumentException(name + " cannot be null");
         }
     }
@@ -140,13 +142,12 @@ public class WordNet {
     }
 
     private boolean isRootedDAG(Digraph G) {
-        boolean result = false;
-        final Topological topological = new Topological(G);
-        if (topological.hasOrder()) {
-            //TODO use DFS to find roots for all unmarked vertices in topological order
-            //TODO and verify that roots are the same
-            result = true;
+        int roots = 0;
+        for (int v = 0; v < G.V(); v++) {
+            if (G.outdegree(v) == 0) {
+                roots++;
+            }
         }
-        return result;
+        return roots == 1;
     }
 }
