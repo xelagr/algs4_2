@@ -3,7 +3,10 @@ package io.xelagr.algs4.graph.mst;
 import edu.princeton.cs.algs4.In;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class EdgeWeightedGraph {
     private final int V;
@@ -14,8 +17,8 @@ public class EdgeWeightedGraph {
     public EdgeWeightedGraph(int V) {
         this.V = V;
         this.adj = new ArrayList[V];
-        for (int i = 0; i < V; i++) {
-            adj[i] = new ArrayList<>();
+        for (int v = 0; v < V; v++) {
+            adj[v] = new ArrayList<>();
         }
     }
 
@@ -25,6 +28,14 @@ public class EdgeWeightedGraph {
         int edgeCount = in.readInt();
         for (int i = 0; i < edgeCount; i++) {
             addEdge(new Edge(in.readInt(), in.readInt(), in.readDouble()));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public EdgeWeightedGraph(EdgeWeightedGraph G) {
+        this(G.V());
+        for (Edge e : G.edges()) {
+            addEdge(new Edge(e));
         }
     }
 
@@ -39,7 +50,7 @@ public class EdgeWeightedGraph {
     }
 
     public Iterable<Edge> edges() {
-        final List<Edge> edges = new ArrayList<>();
+        final Set<Edge> edges = new TreeSet<>();
         for (List<Edge> l : adj) {
             edges.addAll(l);
         }
@@ -58,4 +69,5 @@ public class EdgeWeightedGraph {
     public String toString() {
         return "[" + V + ", " + E() + ']';
     }
+
 }

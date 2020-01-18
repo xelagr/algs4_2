@@ -10,12 +10,16 @@ public class Edge implements Comparable<Edge>{
         this.weight = weight;
     }
 
+    public Edge(Edge e) {
+        this(e.v, e.w, e.weight);
+    }
+
     public int either() {
         return v;
     }
 
     public int other(int v) {
-        return this.v == v ? w : v;
+        return this.v == v ? this.w : this.v;
     }
 
     @Override
