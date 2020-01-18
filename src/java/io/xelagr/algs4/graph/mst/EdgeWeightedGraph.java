@@ -49,7 +49,7 @@ public class EdgeWeightedGraph {
         return adj[v];
     }
 
-    public Iterable<Edge> edges() {
+    public Iterable<Edge>  edges() {
         final Set<Edge> edges = new TreeSet<>();
         for (List<Edge> l : adj) {
             edges.addAll(l);
