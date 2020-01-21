@@ -18,18 +18,15 @@ public class SeamCarver {
     }
 
     private Picture picture;
-    private boolean vertical;
 
     // create a seam carver object based on the given picture
     public SeamCarver(Picture picture) {
         if (picture == null) throw new IllegalArgumentException("picture cannot be null");
         this.picture = new Picture(picture);
-        this.vertical = true;
     }
 
     // current picture
     public Picture picture() {
-        if (!vertical) transpose(true);
         return new Picture(picture);
     }
 
@@ -53,35 +50,62 @@ public class SeamCarver {
     }
 
     // sequence of indices for vertical seam
-
     public int[] findVerticalSeam() {
-        if (!vertical) transpose(true);
-        return findSeam();
+        double[][] energyGrid = initGrid();
+        double[][] distTo = initDistTo(energyGrid[0]);
+        int[][] edgeTo = new int[picture.height()][picture.width()];
+
+        for (int y = 0; y < picture.height() - 1; y++) {
+            for (int x = 0; x < picture.width(); x++) {
+                relaxBelowPixels(energyGrid, distTo, edgeTo, y, x);
+            }
+        }
+
+        int minEnergyX = findMinEnergy(distTo[picture.height() - 1]);
+
+//        printStats(energyGrid, distTo, edgeTo, minEnergyX);
+
+        return pathToBottom(edgeTo, minEnergyX);
     }
+
     // sequence of indices for horizontal seam
-
     public int[] findHorizontalSeam() {
-        if (vertical) transpose(false);
-        return findSeam();
-    }
-
-    // remove horizontal seam from current picture
-    public void removeHorizontalSeam(int[] seam) {
-        validateSeam(seam, width(), height()-1);
-        throw new UnsupportedOperationException();
+        // TODO Don’t explicitly transpose the Picture or int[][] until you need to do so.
+        // TODO For example, if you perform a sequence of 50 consecutive horizontal seam removals, you should need only two transposes (not 100).
+        transpose();
+        final int[] seam = findVerticalSeam();
+        transpose();
+        return seam;
     }
 
     // remove vertical seam from current picture
     public void removeVerticalSeam(int[] seam) {
         validateSeam(seam, height(), width()-1);
-        throw new UnsupportedOperationException();
+        Picture newPic = new Picture(picture.width()-1, picture.height());
+        for (int y = 0; y < seam.length; y++) {
+            for (int oldX = 0, newX = 0; oldX < picture.width(); oldX++) {
+                if (oldX != seam[y]) {
+                    newPic.setRGB(newX++, y, picture.getRGB(oldX, y));
+                }
+            }
+        }
+        picture = newPic;
     }
 
-    private void validateSeam(int[] seam, int expectedLen, int maxValue) {
-        if (seam == null || seam.length != expectedLen) throw new IllegalArgumentException("seam cannot be null");
-        validateRange(seam[0], 0, maxValue);
+    // remove horizontal seam from current picture
+    public void removeHorizontalSeam(int[] seam) {
+        validateSeam(seam, width(), height()-1);
+        transpose();
+        removeVerticalSeam(seam);
+        transpose();
+    }
+
+    private void validateSeam(int[] seam, int expectedLen, int picSize) {
+        if (picSize <= 0) throw new IllegalArgumentException("picture is too small, cannot proceed");
+        if (seam == null || seam.length != expectedLen) throw new IllegalArgumentException("seam cannot be null or exceed picture size");
+        validateRange(seam[0], 0, picSize);
         for (int i = 1; i < seam.length; i++) {
-            validateRange(seam[i], 0, maxValue);
+            validateRange(seam[i], 0, picSize);
             if (Math.abs(seam[i-1] - seam[i]) > 1) throw new IllegalArgumentException("seam elements differ by more than 1");
         }
     }
@@ -109,33 +133,14 @@ public class SeamCarver {
         return r*r + g*g + b*b;
     }
 
-    private int[] findSeam() {
-        double[][] energyGrid = initGrid();
-        double[][] distTo = initDistTo(energyGrid[0]);
-        int[][] edgeTo = new int[picture.height()][picture.width()];
-
-        for (int y = 0; y < picture.height() - 1; y++) {
-            for (int x = 0; x < picture.width(); x++) {
-                relaxBelowPixels(energyGrid, distTo, edgeTo, y, x);
-            }
-        }
-
-        int minEnergyX = findMinEnergy(distTo[picture.height() - 1]);
-
-//        printStats(energyGrid, distTo, edgeTo, minEnergyX);
-
-        return pathToBottom(edgeTo, minEnergyX);
-    }
-
-    private void transpose(boolean vertical) {
+    private void transpose() {
         Picture transposed = new Picture(height(), width());
         for (int x = 0; x < width(); x++) {
             for (int y = 0; y < height(); y++) {
                 transposed.setRGB(y, x, picture.getRGB(x, y));
             }
         }
-        this.picture = transposed;
-        this.vertical = vertical;
+        picture = transposed;
     }
 
     private int findMinEnergy(double[] distTo) {
