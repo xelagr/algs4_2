@@ -1,34 +1,23 @@
 package io.xelagr.algs4.graph.sp;
 
-import edu.princeton.cs.algs4.IndexMinPQ;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 
-public class DijkstraSP implements SP {
+public class AsyclicSP implements SP {
     private double[] distTo;
     private DirectedEdge[] edgeTo;
-    private final IndexMinPQ<Double> pq;
 
-    public DijkstraSP(EdgeWeightedDigraph G, int s) {
-        // if we allow negative edges, the implementation will work,
-        // but could take exponential time in the worst case,
-        // comparing to E log V in typical case without negative edges
-        for (DirectedEdge e : G.edges()) {
-            if (e.weight() < 0)
-                throw new IllegalArgumentException("edge " + e + " has negative weight");
-        }
+    public AsyclicSP(EdgeWeightedDigraph G, int s) {
         distTo = new double[G.V()];
         edgeTo = new DirectedEdge[G.V()];
 
         Arrays.fill(distTo, Double.POSITIVE_INFINITY);
         distTo[s] = 0.0;
 
-        pq = new IndexMinPQ<>(G.V());
-        pq.insert(s, distTo[s]);
+        DepthFirstOrder depthFirstOrder = new DepthFirstOrder(G);
+        System.out.println(depthFirstOrder.reversePost());
 
-        while(!pq.isEmpty()) {
-            int v = pq.delMin();
+        for(Integer v  : depthFirstOrder.reversePost()) {
             for (DirectedEdge e : G.adj(v)) {
                 relax(e);
             }
@@ -41,8 +30,6 @@ public class DijkstraSP implements SP {
         if (distTo[w] > newDist) {
             distTo[w] = newDist;
             edgeTo[w] = e;
-            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
-            else  pq.insert(w, distTo[w]);
         }
     }
 
@@ -61,4 +48,5 @@ public class DijkstraSP implements SP {
     public boolean hasPathTo(int v) {
         return edgeTo[v] != null;
     }
+
 }

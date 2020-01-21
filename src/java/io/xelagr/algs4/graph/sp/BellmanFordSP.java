@@ -1,38 +1,42 @@
 package io.xelagr.algs4.graph.sp;
 
-import edu.princeton.cs.algs4.IndexMinPQ;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 
-public class DijkstraSP implements SP {
+public class BellmanFordSP implements SP {
     private double[] distTo;
-    private DirectedEdge[] edgeTo;
-    private final IndexMinPQ<Double> pq;
+    private final DirectedEdge[] edgeTo;
+    private final LinkedList<Integer> distChanged;
+    private final boolean[] queued;
+    private int edgeRelaxCount;
 
-    public DijkstraSP(EdgeWeightedDigraph G, int s) {
-        // if we allow negative edges, the implementation will work,
-        // but could take exponential time in the worst case,
-        // comparing to E log V in typical case without negative edges
-        for (DirectedEdge e : G.edges()) {
-            if (e.weight() < 0)
-                throw new IllegalArgumentException("edge " + e + " has negative weight");
-        }
+    public BellmanFordSP(EdgeWeightedDigraph G, int s) {
         distTo = new double[G.V()];
         edgeTo = new DirectedEdge[G.V()];
+        distChanged = new LinkedList<>();
+        queued = new boolean[G.V()];
 
         Arrays.fill(distTo, Double.POSITIVE_INFINITY);
         distTo[s] = 0.0;
+        distChanged.push(s);
+        queued[s] = true;
 
-        pq = new IndexMinPQ<>(G.V());
-        pq.insert(s, distTo[s]);
-
-        while(!pq.isEmpty()) {
-            int v = pq.delMin();
+        edgeRelaxCount = 0;
+        while(!distChanged.isEmpty()) {
+            Integer v = distChanged.poll();
+            queued[v] = false;
             for (DirectedEdge e : G.adj(v)) {
                 relax(e);
             }
         }
+        /*for (int i = 0; i < G.V(); i++) {
+            for (int v = 0; v < G.V(); v++) {
+                for (DirectedEdge e : G.adj(v)) {
+                    relax(e);
+                }
+            }
+        }*/
+        System.out.printf("%d iterations for %d vetrices and %d edges", edgeRelaxCount, G.V(), G.E());
     }
 
     private void relax(DirectedEdge e) {
@@ -41,9 +45,12 @@ public class DijkstraSP implements SP {
         if (distTo[w] > newDist) {
             distTo[w] = newDist;
             edgeTo[w] = e;
-            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
-            else  pq.insert(w, distTo[w]);
+            if (!queued[w]) {
+                distChanged.push(w);
+                queued[w] = true;
+            }
         }
+        edgeRelaxCount++;
     }
 
     public double distTo(int v) {
@@ -61,4 +68,5 @@ public class DijkstraSP implements SP {
     public boolean hasPathTo(int v) {
         return edgeTo[v] != null;
     }
+
 }
