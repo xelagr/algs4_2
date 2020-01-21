@@ -1,13 +1,15 @@
 package io.xelagr.algs4.graph.seamcarving;
 
 import edu.princeton.cs.algs4.Picture;
+import edu.princeton.cs.algs4.Stopwatch;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Arrays;
 
 public class SeamCarver {
 
     private static final int BORDER_ENERGY = 1000;
+
     private static class Pixel {
         int x, y;
 
@@ -17,7 +19,23 @@ public class SeamCarver {
         }
     }
 
+    private static class ColorUtil {
+
+        public static int getRed(int value) {
+            return (value >> 16) & 0xFF;
+        }
+
+        public static int getGreen(int value) {
+            return (value >> 8) & 0xFF;
+        }
+
+        public static int getBlue(int value) {
+            return value & 0xFF;
+        }
+    }
+
     private Picture picture;
+    private boolean transposed;
 
     // create a seam carver object based on the given picture
     public SeamCarver(Picture picture) {
@@ -49,23 +67,44 @@ public class SeamCarver {
         return Math.sqrt(xGradientSquare + yGradientSquare);
     }
 
+
+    public double findVerticalSeamTime;
+    public double initEnergyGrid;
+    public double initDistToTime;
+    public double relaxBelowPixelsTime;
+    public double removeVerticalSeamTime;
+
     // sequence of indices for vertical seam
     public int[] findVerticalSeam() {
-        double[][] energyGrid = initGrid();
+        final Stopwatch sw1 = new Stopwatch();
+
+        final Stopwatch sw2 = new Stopwatch();
+        // TODO Reuse the energy array and shift array elements to plug the holes left from the seam that was just removed.
+        // TODO You will need to recalculate the energies for the pixels along the seam that was just removed, but no other energies will change.
+        double[][] energyGrid = initEnergyGrid();
+        initEnergyGrid += sw2.elapsedTime();
+
+        final Stopwatch sw3 = new Stopwatch();
         double[][] distTo = initDistTo(energyGrid[0]);
+        initDistToTime += sw3.elapsedTime();
+
         int[][] edgeTo = new int[picture.height()][picture.width()];
 
+        final Stopwatch sw4 = new Stopwatch();
         for (int y = 0; y < picture.height() - 1; y++) {
             for (int x = 0; x < picture.width(); x++) {
                 relaxBelowPixels(energyGrid, distTo, edgeTo, y, x);
             }
         }
+        relaxBelowPixelsTime += sw4.elapsedTime();
 
         int minEnergyX = findMinEnergy(distTo[picture.height() - 1]);
 
 //        printStats(energyGrid, distTo, edgeTo, minEnergyX);
 
-        return pathToBottom(edgeTo, minEnergyX);
+        final int[] path = pathToBottom(edgeTo, minEnergyX);
+        findVerticalSeamTime += sw1.elapsedTime();
+        return path;
     }
 
     // sequence of indices for horizontal seam
@@ -80,6 +119,8 @@ public class SeamCarver {
 
     // remove vertical seam from current picture
     public void removeVerticalSeam(int[] seam) {
+        final Stopwatch sw = new Stopwatch();
+
         validateSeam(seam, height(), width()-1);
         Picture newPic = new Picture(picture.width()-1, picture.height());
         for (int y = 0; y < seam.length; y++) {
@@ -89,6 +130,7 @@ public class SeamCarver {
                 }
             }
         }
+        removeVerticalSeamTime += sw.elapsedTime();
         picture = newPic;
     }
 
@@ -124,23 +166,32 @@ public class SeamCarver {
     }
 
     private int gradientSquare(Pixel p1, Pixel p2) {
-        // TODO user getRGB instead of get to improve performance. Need to decode color value in this case.
+        // TODO consider using getRGB() instead of get() to improve performance. Need to decode color value in this case.
         final Color c1 = picture.get(p1.x, p1.y);
         final Color c2 = picture.get(p2.x, p2.y);
         int r = c1.getRed() - c2.getRed();
         int g = c1.getGreen() - c2.getGreen();
         int b = c1.getBlue() - c2.getBlue();
+
+/*        final int c1 = picture.getRGB(p1.x, p1.y);
+        final int c2 = picture.getRGB(p2.x, p2.y);
+        int r = ColorUtil.getRed(c1) - ColorUtil.getRed(c2);
+        int g = ColorUtil.getGreen(c1) - ColorUtil.getGreen(c2);
+        int b = ColorUtil.getBlue(c1) - ColorUtil.getBlue(c2);*/
+
         return r*r + g*g + b*b;
     }
 
+    // Transpose picture. Note that double transpose yields original picture, i.e. picture after transpose(transpose()) remains the same
     private void transpose() {
-        Picture transposed = new Picture(height(), width());
+        Picture newPic = new Picture(height(), width());
         for (int x = 0; x < width(); x++) {
             for (int y = 0; y < height(); y++) {
-                transposed.setRGB(y, x, picture.getRGB(x, y));
+                newPic.setRGB(y, x, picture.getRGB(x, y));
             }
         }
-        picture = transposed;
+        picture = newPic;
+        transposed = !transposed;
     }
 
     private int findMinEnergy(double[] distTo) {
@@ -182,7 +233,7 @@ public class SeamCarver {
         }
     }
 
-    private double[][] initGrid() {
+    private double[][] initEnergyGrid() {
         double[][] energyGrid = new double[picture.height()][picture.width()];
         for (int y = 0; y < picture.height(); y++) {
             for (int x = 0; x < picture.width(); x++) {

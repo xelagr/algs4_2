@@ -39,6 +39,11 @@ public class ResizeDemo {
             int[] verticalSeam = sc.findVerticalSeam();
             sc.removeVerticalSeam(verticalSeam);
         }
+        System.out.println("initGridTime: " + sc.initEnergyGrid);
+        System.out.println("initDistToTime: " + sc.initDistToTime);
+        System.out.println("relaxBelowPixelsTime: " + sc.relaxBelowPixelsTime);
+        System.out.println("findVerticalSeamTime: " + sc.findVerticalSeamTime);
+        System.out.println("removeVerticalSeamTime: " + sc.removeVerticalSeamTime);
         Picture outputImg = sc.picture();
 
         StdOut.printf("new image size is %d columns by %d rows\n", sc.width(), sc.height());
