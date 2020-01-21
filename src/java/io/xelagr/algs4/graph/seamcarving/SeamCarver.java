@@ -22,6 +22,7 @@ public class SeamCarver {
 
     // create a seam carver object based on the given picture
     public SeamCarver(Picture picture) {
+        if (picture == null) throw new IllegalArgumentException("picture cannot be null");
         this.picture = new Picture(picture);
         this.vertical = true;
     }
@@ -44,10 +45,58 @@ public class SeamCarver {
 
     // energy of pixel at column x and row y
     public double energy(int x, int y) {
+        if (x < 0 || x >= width() || y < 0 || y >= height()) throw new IllegalArgumentException("x or y are out of bounds");
         if (x == 0 || x == width()-1 || y == 0 || y == height()-1) return BORDER_ENERGY;
         final int xGradientSquare = gradientSquare(new Pixel(x - 1, y), new Pixel(x + 1, y));
         final int yGradientSquare = gradientSquare(new Pixel(x, y - 1), new Pixel(x, y + 1));
         return Math.sqrt(xGradientSquare + yGradientSquare);
+    }
+
+    // sequence of indices for vertical seam
+
+    public int[] findVerticalSeam() {
+        if (!vertical) transpose(true);
+        return findSeam();
+    }
+    // sequence of indices for horizontal seam
+
+    public int[] findHorizontalSeam() {
+        if (vertical) transpose(false);
+        return findSeam();
+    }
+
+    // remove horizontal seam from current picture
+    public void removeHorizontalSeam(int[] seam) {
+        validateSeam(seam, width(), height()-1);
+        throw new UnsupportedOperationException();
+    }
+
+    // remove vertical seam from current picture
+    public void removeVerticalSeam(int[] seam) {
+        validateSeam(seam, height(), width()-1);
+        throw new UnsupportedOperationException();
+    }
+
+    private void validateSeam(int[] seam, int expectedLen, int maxValue) {
+        if (seam == null || seam.length != expectedLen) throw new IllegalArgumentException("seam cannot be null");
+        validateRange(seam[0], 0, maxValue);
+        for (int i = 1; i < seam.length; i++) {
+            validateRange(seam[i], 0, maxValue);
+            if (Math.abs(seam[i-1] - seam[i]) > 1) throw new IllegalArgumentException("seam elements differ by more than 1");
+        }
+    }
+
+    private void validateRange(int el, int min, int max) {
+        if (el < min || el > max) throw new IllegalArgumentException("element is out of bounds");
+    }
+
+    //  unit testing (optional)
+    public static void main(String[] args) {
+        final SeamCarver sc = new SeamCarver(new Picture("/seam/6x5.png"));
+        final int[] vSeam = sc.findVerticalSeam();
+        System.out.println(Arrays.toString(vSeam));
+        final int[] hSeam = sc.findHorizontalSeam();
+        System.out.println(Arrays.toString(hSeam));
     }
 
     private int gradientSquare(Pixel p1, Pixel p2) {
@@ -60,19 +109,7 @@ public class SeamCarver {
         return r*r + g*g + b*b;
     }
 
-    // sequence of indices for vertical seam
-    public int[] findVerticalSeam() {
-        if (!vertical) transpose(true);
-        return findSeam();
-    }
-
-    // sequence of indices for horizontal seam
-    public int[] findHorizontalSeam() {
-        if (vertical) transpose(false);
-        return findSeam();
-    }
-
-    public int[] findSeam() {
+    private int[] findSeam() {
         double[][] energyGrid = initGrid();
         double[][] distTo = initDistTo(energyGrid[0]);
         int[][] edgeTo = new int[picture.height()][picture.width()];
@@ -187,22 +224,4 @@ public class SeamCarver {
         }
     }
 
-    // remove horizontal seam from current picture
-    public void removeHorizontalSeam(int[] seam) {
-        throw new UnsupportedOperationException();
-    }
-
-    // remove vertical seam from current picture
-    public void removeVerticalSeam(int[] seam) {
-        throw new UnsupportedOperationException();
-    }
-
-    //  unit testing (optional)
-    public static void main(String[] args) {
-        final SeamCarver sc = new SeamCarver(new Picture("/seam/6x5.png"));
-        final int[] vSeam = sc.findVerticalSeam();
-        System.out.println(Arrays.toString(vSeam));
-        final int[] hSeam = sc.findHorizontalSeam();
-        System.out.println(Arrays.toString(hSeam));
-    }
 }
