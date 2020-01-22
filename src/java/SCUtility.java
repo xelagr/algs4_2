@@ -1,4 +1,4 @@
-package io.xelagr.algs4.graph.seamcarving; /******************************************************************************
+/******************************************************************************
  *  Compilation:  javac SCUtility.java
  *  Execution:    none
  *  Dependencies: SeamCarver.java

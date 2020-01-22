@@ -1,7 +1,4 @@
-package io.xelagr.algs4.graph.seamcarving;
-
 import edu.princeton.cs.algs4.Picture;
-import edu.princeton.cs.algs4.Stopwatch;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -67,43 +64,36 @@ public class SeamCarver {
         return Math.sqrt(xGradientSquare + yGradientSquare);
     }
 
-
-    public double findVerticalSeamTime;
-    public double initEnergyGrid;
-    public double initDistToTime;
-    public double relaxBelowPixelsTime;
-    public double removeVerticalSeamTime;
-
     // sequence of indices for vertical seam
     public int[] findVerticalSeam() {
-        final Stopwatch sw1 = new Stopwatch();
+        startStopWatch("findVerticalSeam");
 
-        final Stopwatch sw2 = new Stopwatch();
+        startStopWatch("initEnergyGrid");
         // TODO Reuse the energy array and shift array elements to plug the holes left from the seam that was just removed.
         // TODO You will need to recalculate the energies for the pixels along the seam that was just removed, but no other energies will change.
         double[][] energyGrid = initEnergyGrid();
-        initEnergyGrid += sw2.elapsedTime();
+        stopStopwatch("initEnergyGrid");
 
-        final Stopwatch sw3 = new Stopwatch();
+        startStopWatch("initDistTo");
         double[][] distTo = initDistTo(energyGrid[0]);
-        initDistToTime += sw3.elapsedTime();
+        stopStopwatch("initDistTo");
 
         int[][] edgeTo = new int[picture.height()][picture.width()];
 
-        final Stopwatch sw4 = new Stopwatch();
+        startStopWatch("relaxBelowPixels");
         for (int y = 0; y < picture.height() - 1; y++) {
             for (int x = 0; x < picture.width(); x++) {
                 relaxBelowPixels(energyGrid, distTo, edgeTo, y, x);
             }
         }
-        relaxBelowPixelsTime += sw4.elapsedTime();
+        stopStopwatch("relaxBelowPixels");
 
         int minEnergyX = findMinEnergy(distTo[picture.height() - 1]);
 
 //        printStats(energyGrid, distTo, edgeTo, minEnergyX);
 
         final int[] path = pathToBottom(edgeTo, minEnergyX);
-        findVerticalSeamTime += sw1.elapsedTime();
+        stopStopwatch("findVerticalSeam");
         return path;
     }
 
@@ -119,18 +109,19 @@ public class SeamCarver {
 
     // remove vertical seam from current picture
     public void removeVerticalSeam(int[] seam) {
-        final Stopwatch sw = new Stopwatch();
+        startStopWatch("removeVerticalSeam");
 
         validateSeam(seam, height(), width()-1);
         Picture newPic = new Picture(picture.width()-1, picture.height());
         for (int y = 0; y < seam.length; y++) {
-            for (int oldX = 0, newX = 0; oldX < picture.width(); oldX++) {
+            int newX = 0;
+            for (int oldX = 0; oldX < picture.width(); oldX++) {
                 if (oldX != seam[y]) {
                     newPic.setRGB(newX++, y, picture.getRGB(oldX, y));
                 }
             }
         }
-        removeVerticalSeamTime += sw.elapsedTime();
+        stopStopwatch("removeVerticalSeam");
         picture = newPic;
     }
 
@@ -279,5 +270,34 @@ public class SeamCarver {
             System.out.println();
         }
     }
+
+
+    // for performance testing
+    // need to call startStopWatch/getElapsedTime in pairs for correct work
+
+    private void startStopWatch(String name) {}
+    private void stopStopwatch(String name) {}
+
+/*    private final boolean measureTime = false;
+    private Map<String, Stopwatch> stopwatches = new HashMap<>();
+    private Map<String, Double> measuredTimes = new LinkedHashMap<>();
+
+    private void startStopWatch(String name) {
+        if (measureTime) {
+            stopwatches.put(name, new Stopwatch());
+        }
+    }
+
+    private void stopStopwatch(String name) {
+        if (measureTime) {
+            if (!stopwatches.containsKey(name)) throw new IllegalArgumentException("No stopwatch associated with " + name);
+            double time = stopwatches.remove(name).elapsedTime();
+            measuredTimes.merge(name, time, Double::sum);
+        }
+    }
+
+    public void printMeasuredTimes() {
+        measuredTimes.forEach((name, time) -> System.out.printf("Time for %s: %f\r\n", name, time));
+    }*/
 
 }

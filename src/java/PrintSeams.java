@@ -1,4 +1,4 @@
-package io.xelagr.algs4.graph.seamcarving; /******************************************************************************
+/******************************************************************************
  *  Compilation:  javac PrintSeams.java
  *  Execution:    java PrintSeams input.png
  *  Dependencies: SeamCarver.java

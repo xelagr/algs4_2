@@ -1,4 +1,4 @@
-package io.xelagr.algs4.graph.seamcarving; /******************************************************************************
+/******************************************************************************
  *  Compilation:  javac ShowSeams.java
  *  Execution:    java ShowSeams input.png
  *  Dependencies: SeamCarver.java SCUtility.java
