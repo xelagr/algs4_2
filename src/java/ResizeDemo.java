@@ -27,6 +27,7 @@ public class ResizeDemo {
 
         StdOut.printf("image is %d columns by %d rows\n", inputImg.width(), inputImg.height());
         SeamCarver sc = new SeamCarver(inputImg);
+        sc.setMeasureTime(true);
 
         Stopwatch sw = new Stopwatch();
 
@@ -40,6 +41,7 @@ public class ResizeDemo {
             sc.removeVerticalSeam(verticalSeam);
         }
 
+        sc.printMeasuredTimes();
         Picture outputImg = sc.picture();
 
         StdOut.printf("new image size is %d columns by %d rows\n", sc.width(), sc.height());

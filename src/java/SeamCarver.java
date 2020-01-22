@@ -1,7 +1,10 @@
 import edu.princeton.cs.algs4.Picture;
+import edu.princeton.cs.algs4.Stopwatch;
 
-import java.awt.Color;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class SeamCarver {
 
@@ -33,6 +36,8 @@ public class SeamCarver {
 
     private Picture picture;
     private boolean transposed;
+    private int[] lastSeamRemoved;
+    private double[][] energyGrid;
 
     // create a seam carver object based on the given picture
     public SeamCarver(Picture picture) {
@@ -69,9 +74,7 @@ public class SeamCarver {
         startStopWatch("findVerticalSeam");
 
         startStopWatch("initEnergyGrid");
-        // TODO Reuse the energy array and shift array elements to plug the holes left from the seam that was just removed.
-        // TODO You will need to recalculate the energies for the pixels along the seam that was just removed, but no other energies will change.
-        double[][] energyGrid = initEnergyGrid();
+        initEnergyGrid();
         stopStopwatch("initEnergyGrid");
 
         startStopWatch("initDistTo");
@@ -90,9 +93,10 @@ public class SeamCarver {
 
         int minEnergyX = findMinEnergy(distTo[picture.height() - 1]);
 
-//        printStats(energyGrid, distTo, edgeTo, minEnergyX);
-
         final int[] path = pathToBottom(edgeTo, minEnergyX);
+
+//        printStats(energyGrid, distTo, edgeTo, minEnergyX, path);
+
         stopStopwatch("findVerticalSeam");
         return path;
     }
@@ -122,6 +126,7 @@ public class SeamCarver {
             }
         }
         stopStopwatch("removeVerticalSeam");
+        lastSeamRemoved = seam;
         picture = newPic;
     }
 
@@ -157,18 +162,11 @@ public class SeamCarver {
     }
 
     private int gradientSquare(Pixel p1, Pixel p2) {
-        // TODO consider using getRGB() instead of get() to improve performance. Need to decode color value in this case.
-        final Color c1 = picture.get(p1.x, p1.y);
-        final Color c2 = picture.get(p2.x, p2.y);
-        int r = c1.getRed() - c2.getRed();
-        int g = c1.getGreen() - c2.getGreen();
-        int b = c1.getBlue() - c2.getBlue();
-
-/*        final int c1 = picture.getRGB(p1.x, p1.y);
+        final int c1 = picture.getRGB(p1.x, p1.y);
         final int c2 = picture.getRGB(p2.x, p2.y);
         int r = ColorUtil.getRed(c1) - ColorUtil.getRed(c2);
         int g = ColorUtil.getGreen(c1) - ColorUtil.getGreen(c2);
-        int b = ColorUtil.getBlue(c1) - ColorUtil.getBlue(c2);*/
+        int b = ColorUtil.getBlue(c1) - ColorUtil.getBlue(c2);
 
         return r*r + g*g + b*b;
     }
@@ -224,14 +222,31 @@ public class SeamCarver {
         }
     }
 
-    private double[][] initEnergyGrid() {
-        double[][] energyGrid = new double[picture.height()][picture.width()];
-        for (int y = 0; y < picture.height(); y++) {
-            for (int x = 0; x < picture.width(); x++) {
-                energyGrid[y][x] = energy(x, y);
+    private void initEnergyGrid() {
+        final int picHeight = picture.height();
+        final int picWidth = picture.width();
+        if (lastSeamRemoved == null) {
+            energyGrid = new double[picHeight][picWidth];
+            for (int y = 0; y < picHeight; y++) {
+                for (int x = 0; x < picWidth; x++) {
+                    energyGrid[y][x] = energy(x, y);
+                }
             }
         }
-        return energyGrid;
+        else {
+            double[][] newEnergyGrid = new double[picHeight][picWidth];
+            for (int y = 0; y < picHeight; y++) {
+                final int rightX = lastSeamRemoved[y];
+                final int leftX = rightX > 0 ? rightX - 1 : 0;
+                System.arraycopy(energyGrid[y], 0, newEnergyGrid[y], 0, leftX);
+                System.arraycopy(energyGrid[y], rightX+2, newEnergyGrid[y], rightX+1, picWidth-rightX-1);
+                for (int x = leftX; x <= rightX; x++) {
+                    newEnergyGrid[y][x] = energy(x, y);
+                }
+            }
+            energyGrid = newEnergyGrid;
+        }
+
     }
 
     private double[][] initDistTo(double[] firstEnergyRow) {
@@ -243,7 +258,7 @@ public class SeamCarver {
         return distTo;
     }
 
-    private void printStats(double[][] energyGrid, double[][] distTo, int[][] edgeTo, int minEnergyX) {
+    private void printStats(double[][] energyGrid, double[][] distTo, int[][] edgeTo, int minEnergyX, int[] path) {
         System.out.println("Energy grid:");
         printDoubles(energyGrid);
         System.out.println("Min distances:");
@@ -275,10 +290,11 @@ public class SeamCarver {
     // for performance testing
     // need to call startStopWatch/getElapsedTime in pairs for correct work
 
-    private void startStopWatch(String name) {}
-    private void stopStopwatch(String name) {}
+//    private void startStopWatch(String name) {}
+//    private void stopStopwatch(String name) {}
+//    public void setMeasureTime(boolean measureTime) {}
 
-/*    private final boolean measureTime = false;
+    private boolean measureTime;
     private Map<String, Stopwatch> stopwatches = new HashMap<>();
     private Map<String, Double> measuredTimes = new LinkedHashMap<>();
 
@@ -296,8 +312,12 @@ public class SeamCarver {
         }
     }
 
+    public void setMeasureTime(boolean measureTime) {
+        this.measureTime = measureTime;
+    }
+
     public void printMeasuredTimes() {
         measuredTimes.forEach((name, time) -> System.out.printf("Time for %s: %f\r\n", name, time));
-    }*/
+    }
 
 }
